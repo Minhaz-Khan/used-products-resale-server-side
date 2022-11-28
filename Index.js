@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 require('dotenv').config()
 const jwt = require('jsonwebtoken');
@@ -71,7 +71,7 @@ async function run() {
             res.status(403).send({ message: 'forbiden access ' })
         })
 
-        app.get('/myproduct', async (req, res) => {
+        app.get('/myproduct', verifyJWT, async (req, res) => {
             const email = req.query.email;
             console.log(email);
             const filter = { email: email };
@@ -80,6 +80,18 @@ async function run() {
             if (user.userType === 'Seller') {
                 const result = await carsPostCollections.find(query).toArray();
                 return res.send(result);
+            }
+            res.status(403).send({ message: 'forbiden access' })
+        })
+        app.delete('/myproduct/:id', verifyJWT, async (req, res) => {
+            const email = req.decoded.email;
+            const id = req.params.id;
+            const filter = { email: email };
+            const query = { _id: ObjectId(id) };
+            const user = await userCollections.findOne(filter);
+            if (user.userType === 'Seller') {
+                const result = await carsPostCollections.deleteOne(query);
+                return res.send(result)
             }
             res.status(403).send({ message: 'forbiden access' })
         })
