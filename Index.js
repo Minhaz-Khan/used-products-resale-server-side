@@ -59,6 +59,30 @@ async function run() {
             const result = await carsPostCollections.find(query).toArray();
             res.send(result)
         })
+        app.post('/addProduct', verifyJWT, async (req, res) => {
+            const product = req.body;
+            const email = req.query.email;
+            const filter = { email: email }
+            const user = await userCollections.findOne(filter);
+            if (user.userType === 'Seller') {
+                const result = await carsPostCollections.insertOne(product);
+                return res.send(result)
+            }
+            res.status(403).send({ message: 'forbiden access ' })
+        })
+
+        app.get('/myproduct', async (req, res) => {
+            const email = req.query.email;
+            console.log(email);
+            const filter = { email: email };
+            const query = { sellerEmail: email }
+            const user = await userCollections.findOne(filter);
+            if (user.userType === 'Seller') {
+                const result = await carsPostCollections.find(query).toArray();
+                return res.send(result);
+            }
+            res.status(403).send({ message: 'forbiden access' })
+        })
 
         app.post('/users', async (req, res) => {
             const user = req.body;
