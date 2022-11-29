@@ -113,6 +113,11 @@ async function run() {
             res.status(403).send({ message: 'forbiden access' })
 
         })
+        app.get('/myproduct/advertis', async (req, res) => {
+            const filter = { status: 'avilable' };
+            const AdvertisItem = await carsPostCollections.find(filter).toArray();
+            res.send(AdvertisItem);
+        })
 
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -178,11 +183,26 @@ async function run() {
         app.put('/users/verify/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
+            const decodedEmail = req.decoded.email;
+            const filter = { email: decodedEmail };
+            const user = await userCollections.findOne(filter)
+            const option = { upsert: true }
             const updateDoc = {
                 $set: {
                     verifyStatus: 'verified'
                 }
             }
+            if (user.userType === 'Admin') {
+                const result = await userCollections.updateOne(query, updateDoc, option)
+                return res.send(result)
+            }
+            res.status(403).send({ message: 'forbiden access' })
+        })
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await userCollections.findOne(query);
+            res.send(user)
         })
 
         app.post('/bookings', verifyJWT, async (req, res) => {
