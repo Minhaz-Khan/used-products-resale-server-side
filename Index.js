@@ -35,6 +35,7 @@ async function run() {
         const carsPostCollections = client.db('carClub').collection('carsPost');
         const userCollections = client.db('carClub').collection('users');
         const bookingCollections = client.db('carClub').collection('bookings');
+        const wishlistCollections = client.db('carClub').collection('mywishlist');
 
         app.get('/jwt', async (req, res) => {
             const email = req.query.email;
@@ -228,6 +229,13 @@ async function run() {
             const query = { _id: ObjectId(id) }
             const booking = await bookingCollections.findOne(query);
             res.send(booking);
+        })
+
+        app.put('/mywishlist', async (req, res) => {
+            const wishlist = req.body;
+            const option = { upsert: true }
+            const result = await wishlistCollections.insertOne(wishlist, option);
+            res.send(result);
         })
 
 
