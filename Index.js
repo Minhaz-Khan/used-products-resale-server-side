@@ -95,6 +95,25 @@ async function run() {
             res.status(403).send({ message: 'forbiden access' })
         })
 
+        app.put('/myproduct/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const decodedEmail = req.decoded.email;
+            const filter = { email: decodedEmail };
+            const user = await userCollections.findOne(filter);
+            const option = { upsert: true }
+            const updateDoc = {
+                $set: { status: 'avilable' }
+            }
+            if (user.userType === 'Seller') {
+                const result = await carsPostCollections.updateOne(query, updateDoc, option)
+                return res.send(result)
+
+            }
+            res.status(403).send({ message: 'forbiden access' })
+
+        })
+
         app.post('/users', async (req, res) => {
             const user = req.body;
             const email = user.email;
@@ -161,7 +180,7 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const updateDoc = {
                 $set: {
-                    verifyStatus: 'verifyed'
+                    verifyStatus: 'verified'
                 }
             }
         })
@@ -181,6 +200,14 @@ async function run() {
             }
             res.status(403).send({ message: 'forbidden access' })
 
+        })
+
+
+        app.get('/bookings/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const booking = await bookingCollections.findOne(query);
+            res.send(booking);
         })
 
 
