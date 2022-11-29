@@ -73,7 +73,6 @@ async function run() {
 
         app.get('/myproduct', verifyJWT, async (req, res) => {
             const email = req.query.email;
-            console.log(email);
             const filter = { email: email };
             const query = { sellerEmail: email }
             const user = await userCollections.findOne(filter);
@@ -110,11 +109,61 @@ async function run() {
             res.send(result)
 
         })
+
         app.get('/users/type/:email', async (req, res) => {
             const email = req.params.email;
             const filter = { email: email };
             const user = await userCollections.findOne(filter);
             res.send({ userType: user?.userType })
+        })
+
+        app.get('/users/allseller', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            const filter = { email: email }
+            if (!email === decodedEmail) {
+                return res.status(403).send({ message: 'forbiden access' })
+            }
+            const user = await userCollections.findOne(filter);
+            if (user.userType === 'Admin') {
+                const query = { userType: 'Seller' }
+                const allseller = await userCollections.find(query).toArray();
+                return res.send(allseller);
+            }
+            res.status(403).send({ message: 'You are not adimn' })
+
+
+        })
+        app.get('/users/allbuyer', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            const filter = { email: email }
+            if (!email === decodedEmail) {
+                return res.status(403).send({ message: 'forbiden access' })
+            }
+            const user = await userCollections.findOne(filter);
+            if (user.userType === 'Admin') {
+                const query = { userType: 'Buyer' }
+                const allseller = await userCollections.find(query).toArray();
+                return res.send(allseller);
+            }
+            res.status(403).send({ message: 'You are not adimn' })
+        })
+
+        app.delete('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await userCollections.deleteOne(query);
+            res.send(result);
+        })
+        app.put('/users/verify/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    verifyStatus: 'verifyed'
+                }
+            }
         })
 
         app.post('/bookings', verifyJWT, async (req, res) => {
