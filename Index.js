@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config()
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
-require('dotenv').config()
 const jwt = require('jsonwebtoken');
 
 app.use(cors());
@@ -231,10 +231,16 @@ async function run() {
             res.send(booking);
         })
 
-        app.put('/mywishlist', async (req, res) => {
+        app.put('/mywishlist', verifyJWT, async (req, res) => {
             const wishlist = req.body;
             const option = { upsert: true }
             const result = await wishlistCollections.insertOne(wishlist, option);
+            res.send(result);
+        })
+        app.get('/mywishlist', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const result = await wishlistCollections.find(query).toArray();
             res.send(result);
         })
 
